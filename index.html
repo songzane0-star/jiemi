@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="screen-orientation" content="portrait">
+    <title>计客超级密码机 - 终极增强版 v2.2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 8px);
+            padding: 10px 8px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* 主滚动容器 */
+        .main-wrapper {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* 顶部信息栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .score-display { background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%); color: #333; }
+        .coins-display { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); color: #fff; }
+        .level-display { background: linear-gradient(135deg, #e040fb 0%, #7c4dff 100%); color: #fff; }
+        .streak-display { background: linear-gradient(135deg, #ff4081 0%, #f50057 100%); color: #fff; }
+
+        /* 音频控制栏 */
+        .audio-controls {
+            position: fixed;
+            top: max(10px, env(safe-area-inset-top, 10px));
+            right: max(10px, env(safe-area-inset-right, 10px));
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .audio-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .audio-btn:active { transform: scale(0.95); }
+        .audio-btn.active { background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%); border-color: #4caf50; }
+        .audio-btn.muted { background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-color: #f44336; }
+
+        /* 制作人按钮 */
+        .credits-btn {
+            position: fixed;
+            bottom: max(15px, env(safe-area-inset-bottom, 15px));
+            left: max(10px, env(safe-area-inset-left, 10px));
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+
+        .credits-btn:active { transform: scale(0.95); }
+
+        /* 制作人弹窗 */
+        .credits-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .credits-content {
+            background: linear-gradient(145deg, #2d5016 0%, #3d7a1c 50%, #4a9c23 100%);
+            border: 3px solid #1a3009;
+            border-radius: 20px;
+            padding: 25px 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 85%;
+            animation: creditsPop 0.3s ease-out;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        @keyframes creditsPop {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .credits-content h3 {
+            color: #ffd700;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .credits-item {
+            background: rgba(0,0,0,0.2);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .credits-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .credits-value {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .credits-wechat {
+            color: #07c160;
+            font-size: 18px;
+        }
+
+        .credits-close {
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #ff7d00 0%, #ff9800 100%);
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .credits-close:active { transform: scale(0.95); }
+
+        /* 音量滑块容器 */
+        .volume-slider-container {
+            position: absolute;
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .audio-btn:active .volume-slider-container,
+        .audio-btn:focus .volume-slider-container {
+            display: flex;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 5px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-label { color: #fff; font-size: 10px; text-align: center; }
+
+        /* 主游戏容器 */
+        .game-container {
+            background: linear-gradient(145deg, #2d5016 0%, #3d7a1c 50%, #4a9c23 100%);
+            border-radius: 16px;
+            padding: 12px 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            width: 100%;
+            border: 3px solid #1a3009;
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* 游戏标题 */
+        .game-header {
+            text-align: center;
+            margin-bottom: 8px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .game-header h1 {
+            font-size: 20px;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-header p { font-size: 11px; opacity: 0.9; }
+
+        /* 游戏模式选择 */
+        .mode-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-tab {
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .mode-tab:active { transform: scale(0.95); }
+        .mode-tab.active {
+            background: linear-gradient(135deg, #ff7d00 0%, #ff9800 100%);
+            border-color: #ff7d00;
+            box-shadow: 0 0 10px rgba(255, 125, 0, 0.5);
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .status-item {
+            background: rgba(0,0,0,0.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .status-value { color: #ffd700; font-weight: bold; }
+
+        /* 计时器 */
+        .timer-display {
+            background: rgba(0,0,0,0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-display.warning { animation: timerPulse 0.5s infinite; color: #ff5252; }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 连击显示 */
+        .combo-display {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: linear-gradient(135deg, #ff4081 0%, #f50057 100%);
+            padding: 3px 8px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 10px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s;
+        }
+
+        .combo-display.show {
+            opacity: 1;
+            transform: scale(1);
+            animation: comboShake 0.5s ease-out;
+        }
+
+        @keyframes comboShake {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* 难度选择器 */
+        .difficulty-bar {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .diff-btn {
+            padding: 4px 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            background: rgba(0,0,0,0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .diff-btn:active { transform: scale(0.95); }
+        .diff-btn.active { border-color: currentColor; box-shadow: 0 0 6px currentColor; }
+        .diff-btn.easy { color: #4caf50; }
+        .diff-btn.easy.active { background: rgba(76, 175, 80, 0.3); }
+        .diff-btn.normal { color: #2196f3; }
+        .diff-btn.normal.active { background: rgba(33, 150, 243, 0.3); }
+        .diff-btn.hard { color: #ff9800; }
+        .diff-btn.hard.active { background: rgba(255, 152, 0, 0.3); }
+        .diff-btn.hell { color: #f44336; }
+        .diff-btn.hell.active { background: rgba(244, 67, 54, 0.3); }
+
+        /* 设置栏 */
+        .setting-bar {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .setting-btn {
+            padding: 4px 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            background: rgba(0,0,0,0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .setting-btn.active {
+            background: #FF7D00;
+            border-color: #FF7D00;
+            box-shadow: 0 0 6px rgba(255,125,0,0.5);
+        }
+
+        .setting-btn:active { transform: scale(0.95); }
+
+        /* 闯关进度条 */
+        .level-progress {
+            background: rgba(0,0,0,0.2);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            background: rgba(0,0,0,0.3);
+            height: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            border-radius: 3px;
+            transition: width 0.5s ease-out;
+        }
+
+        /* 每日任务栏 */
+        .daily-tasks {
+            background: rgba(0,0,0,0.2);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .daily-tasks.show { display: block; }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 10px;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .task-item:last-child { border-bottom: none; }
+        .task-progress { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 8px; font-size: 9px; }
+        .task-progress.completed { background: #4caf50; color: #fff; }
+
+        /* 道具栏 */
+        .items-bar {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .item-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 8px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 52px;
+            position: relative;
+        }
+
+        .item-btn:active:not(:disabled) { transform: scale(0.95); }
+        .item-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .item-icon { font-size: 18px; margin-bottom: 1px; }
+        .item-name { font-size: 9px; color: #fff; font-weight: bold; }
+        .item-cost { font-size: 8px; color: #ffd700; }
+
+        /* 尝试记录区 */
+        .attempts-container {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 4px;
+            margin-bottom: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 3px;
+            flex-shrink: 0;
+        }
+
+        .attempts-container::-webkit-scrollbar { width: 3px; }
+        .attempts-container::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.3); border-radius: 2px; }
+
+        /* 尝试行 */
+        .attempt-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .attempt-number {
+            color: #fff;
+            font-weight: bold;
+            font-size: 10px;
+            min-width: 20px;
+            text-align: center;
+            background: rgba(0,0,0,0.4);
+            padding: 2px 0;
+            border-radius: 3px;
+        }
+
+        .color-slots { display: flex; gap: 4px; }
+
+        .color-slot {
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(0,0,0,0.5);
+            border-radius: 5px;
+            background-color: rgba(0,0,0,0.3);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .color-slot.filled {
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3);
+            animation: popIn 0.2s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .color-slot.hint-revealed { animation: hintPulse 1s ease-out; }
+
+        @keyframes hintPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        .color-slot.repeat-error {
+            animation: shakeError 0.4s ease-out;
+            border-color: #ff5252 !important;
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .feedback-dots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+
+        .feedback-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background-color: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .feedback-dot.correct {
+            background-color: #00e676;
+            box-shadow: 0 0 4px rgba(0, 230, 118, 0.8);
+            animation: dotPop 0.3s ease-out;
+        }
+
+        .feedback-dot.wrong-pos {
+            background-color: #ffeb3b;
+            box-shadow: 0 0 4px rgba(255, 235, 59, 0.8);
+            animation: dotPop 0.3s ease-out 0.1s;
+        }
+
+        @keyframes dotPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* 当前输入行 */
+        #currentAttempt {
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        /* 颜色选择器 */
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(0,0,0,0.5);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        .color-option:active:not(.disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+        }
+
+        .color-option.disabled { opacity: 0.3; cursor: not-allowed; }
+        .color-option.selected-repeat { border-color: #ff5252 !important; box-shadow: 0 0 0 2px #ff5252, 0 2px 0 rgba(0,0,0,0.3) !important; }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .action-btn.submit { background: linear-gradient(135deg, #00c853 0%, #00e676 100%); box-shadow: 0 2px 0 #008c3b, 0 4px 10px rgba(0, 200, 83, 0.3); }
+        .action-btn.reset { background: linear-gradient(135deg, #ff5252 0%, #ff1744 100%); box-shadow: 0 2px 0 #c41010, 0 4px 10px rgba(255, 82, 82, 0.3); }
+        .action-btn.undo { background: linear-gradient(135deg, #78909c 0%, #90a4ae 100%); box-shadow: 0 2px 0 #546e7a, 0 4px 10px rgba(120, 144, 156, 0.3); }
+        .action-btn.shake { background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%); box-shadow: 0 2px 0 #6a1b9a, 0 4px 10px rgba(156, 39, 176, 0.3); }
+
+        .action-btn:active:not(:disabled) { transform: translateY(1px); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background: linear-gradient(145deg, #3d7a1c 0%, #4a9c23 100%);
+            border: 3px solid #1a3009;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            max-width: 280px;
+            width: 90%;
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal h2 { color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px; font-size: 18px; }
+        .modal p { color: #fff; font-size: 13px; margin-bottom: 6px; }
+        .modal .highlight { color: #ffd700; font-weight: bold; font-size: 14px; }
+
+        .modal .reward-info {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .modal button {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #ff7d00 0%, #ff9800 100%);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 3px;
+            transition: all 0.2s;
+        }
+
+        .modal button:active { transform: scale(0.95); }
+
+        /* 成就弹窗 */
+        .achievement-popup {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%);
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(106, 27, 154, 0.5);
+            z-index: 200;
+            animation: achievementSlide 0.5s ease-out;
+            display: none;
+            max-width: 90%;
+        }
+
+        @keyframes achievementSlide {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .achievement-popup .title { color: #ffd700; font-weight: bold; font-size: 11px; margin-bottom: 3px; }
+        .achievement-popup .name { color: #fff; font-size: 13px; }
+
+        /* 错误提示弹窗 */
+        .error-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(244, 67, 54, 0.95);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 300;
+            animation: toastPop 0.3s ease-out;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.5);
+            max-width: 85%;
+            text-align: center;
+        }
+
+        @keyframes toastPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 幸运转盘按钮 */
+        .lucky-wheel-btn {
+            position: fixed;
+            bottom: max(15px, env(safe-area-inset-bottom, 15px));
+            right: max(10px, env(safe-area-inset-right, 10px));
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: wheelPulse 2s infinite;
+            z-index: 50;
+        }
+
+        @keyframes wheelPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .lucky-wheel-btn:active { transform: scale(0.95); }
+
+        /* 颜色类 */
+        .red { background-color: #F44336; }
+        .blue { background-color: #2196F3; }
+        .yellow { background-color: #FFEB3B; }
+        .green { background-color: #4CAF50; }
+        .purple { background-color: #9C27B0; }
+        .orange { background-color: #FF9800; }
+        .black { background-color: #000; }
+        .white { background-color: #fff; }
+        .pink { background-color: #E91E63; }
+        .cyan { background-color: #00BCD4; }
+
+        /* 粒子效果 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 150;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: particleFall linear forwards;
+        }
+
+        @keyframes particleFall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* 新手引导 */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .tutorial-box {
+            background: linear-gradient(145deg, #3d7a1c 0%, #4a9c23 100%);
+            border-radius: 14px;
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+        }
+
+        .tutorial-box h3 { color: #ffd700; margin-bottom: 12px; font-size: 18px; }
+
+        .tutorial-step {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .tutorial-step .icon { font-size: 16px; margin-right: 6px; }
+
+        /* 音频启动提示 */
+        .audio-start-prompt {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 200;
+            animation: bounceIn 0.5s ease-out;
+            display: none;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            50% { transform: translateX(-50%) scale(1.1); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+
+        /* 响应式 - 超小屏幕 */
+        @media (max-height: 680px) {
+            body { padding: 5px; }
+            .top-bar { margin-bottom: 5px; gap: 4px; }
+            .stat-badge { padding: 4px 8px; font-size: 10px; }
+            .game-container { padding: 8px 6px; border-radius: 12px; }
+            .game-header h1 { font-size: 18px; }
+            .game-header p { font-size: 10px; }
+            .mode-selector { margin-bottom: 6px; gap: 4px; }
+            .mode-tab { padding: 4px 8px; font-size: 10px; }
+            .status-bar { margin-bottom: 6px; gap: 3px; }
+            .status-item { padding: 3px 6px; font-size: 10px; }
+            .difficulty-bar { margin-bottom: 6px; }
+            .diff-btn { padding: 3px 8px; font-size: 9px; }
+            .setting-bar { margin-bottom: 6px; }
+            .setting-btn { padding: 3px 6px; font-size: 9px; }
+            .items-bar { margin-bottom: 6px; gap: 4px; }
+            .item-btn { padding: 4px 6px; min-width: 46px; }
+            .item-icon { font-size: 16px; }
+            .item-name { font-size: 8px; }
+            .item-cost { font-size: 7px; }
+            .attempts-container { max-height: 140px; margin-bottom: 6px; }
+            .color-slot { width: 24px; height: 24px; }
+            .feedback-dot { width: 9px; height: 9px; }
+            .attempt-number { font-size: 9px; min-width: 18px; }
+            #currentAttempt { padding: 5px; margin-bottom: 6px; }
+            .color-picker { margin-bottom: 6px; gap: 3px; }
+            .color-option { width: 28px; height: 28px; }
+            .action-buttons { gap: 4px; }
+            .action-btn { padding: 6px 10px; font-size: 11px; }
+            .level-progress, .daily-tasks { padding: 5px 8px; margin-bottom: 6px; }
+        }
+
+        /* 响应式 - 宽度 */
+        @media (max-width: 360px) {
+            .color-slot { width: 26px; height: 26px; }
+            .color-option { width: 28px; height: 28px; }
+            .feedback-dot { width: 10px; height: 10px; }
+            .game-header h1 { font-size: 18px; }
+            .item-btn { min-width: 44px; padding: 4px 5px; }
+            .item-icon { font-size: 14px; }
+            .stat-badge { padding: 4px 6px; font-size: 10px; }
+            .audio-btn, .credits-btn { width: 36px; height: 36px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 粒子效果容器 -->
+<div class="particles" id="particles"></div>
+
+<!-- 音频控制按钮 -->
+<div class="audio-controls">
+    <button class="audio-btn" id="bgmBtn" title="背景音乐">🎵</button>
+    <button class="audio-btn active" id="sfxBtn" title="音效">🔊</button>
+</div>
+
+<!-- 制作人按钮 -->
+<button class="credits-btn" id="creditsBtn" title="关于">👤</button>
+
+<!-- 制作人弹窗 -->
+<div class="credits-modal" id="creditsModal">
+    <div class="credits-content">
+        <h3>🎮 关于游戏</h3>
+        <div class="credits-item">
+            <div class="credits-label">游戏名称</div>
+            <div class="credits-value">计客超级密码机</div>
+        </div>
+        <div class="credits-item">
+            <div class="credits-label">制作人</div>
+            <div class="credits-value">Zane Song</div>
+        </div>
+        <div class="credits-item">
+            <div class="credits-label">微信</div>
+            <div class="credits-value credits-wechat">dtcszy</div>
+        </div>
+        <button class="credits-close" id="creditsClose">关闭</button>
+    </div>
+</div>
+
+<!-- 音频启动提示 -->
+<div class="audio-start-prompt" id="audioPrompt">🎵 点击任意位置开启音乐</div>
+
+<!-- 成就弹窗 -->
+<div class="achievement-popup" id="achievementPopup">
+    <div class="title">🏆 成就解锁！</div>
+    <div class="name" id="achievementName"></div>
+</div>
+
+<!-- 幸运转盘按钮 -->
+<div class="lucky-wheel-btn" id="luckyWheelBtn" title="幸运转盘">🎰</div>
+
+<!-- 主内容包装器 -->
+<div class="main-wrapper">
+    <!-- 顶部信息栏 -->
+    <div class="top-bar">
+        <div class="stat-badge score-display">⭐ <span id="scoreText">0</span></div>
+        <div class="stat-badge coins-display">💎 <span id="coinsText">100</span></div>
+        <div class="stat-badge streak-display">🔥 <span id="streakText">0</span></div>
+        <div class="stat-badge level-display">🎯 <span id="levelText">1</span></div>
+    </div>
+
+    <div class="game-container">
+        <!-- 连击显示 -->
+        <div class="combo-display" id="comboDisplay">连击 x<span id="comboCount">0</span></div>
+
+        <div class="game-header">
+            <h1>🔐 计客超级密码机</h1>
+            <p>🟢 位置颜色都对 | 🟡 颜色对位置错</p>
+        </div>
+
+        <!-- 游戏模式选择 -->
+        <div class="mode-selector">
+            <button class="mode-tab active" data-mode="classic">🎯 经典</button>
+            <button class="mode-tab" data-mode="timed">⏱️ 限时</button>
+            <button class="mode-tab" data-mode="adventure">🗺️ 闯关</button>
+            <button class="mode-tab" data-mode="endless">♾️ 无尽</button>
+            <button class="mode-tab" data-mode="daily">📅 每日</button>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-item">难度: <span class="status-value" id="difficultyText">简单</span></div>
+            <div class="status-item timer-display" id="timerDisplay" style="display:none;">⏱️ <span id="timerText">60</span>秒</div>
+            <div class="status-item">剩余: <span class="status-value" id="remainingText">20</span>次</div>
+            <div class="status-item">规则: <span class="status-value" id="repeatStatus">允许重复</span></div>
+        </div>
+
+        <!-- 难度选择 -->
+        <div class="difficulty-bar" id="difficultyBar">
+            <button class="diff-btn easy active" data-diff="easy">🌱 简单</button>
+            <button class="diff-btn normal" data-diff="normal">⚡ 中等</button>
+            <button class="diff-btn hard" data-diff="hard">🔥 困难</button>
+            <button class="diff-btn hell" data-diff="hell">💀 地狱</button>
+        </div>
+
+        <!-- 设置栏 -->
+        <div class="setting-bar" id="settingBar">
+            <button class="setting-btn mode-btn active" data-mode="4">4位</button>
+            <button class="setting-btn mode-btn" data-mode="5">5位</button>
+            <button class="setting-btn mode-btn" data-mode="6">6位</button>
+            <button class="setting-btn repeat-btn active" data-repeat="true">允许重复</button>
+            <button class="setting-btn repeat-btn" data-repeat="false">禁止重复</button>
+        </div>
+
+        <!-- 闯关进度条 -->
+        <div class="level-progress" id="levelProgress" style="display:none;">
+            <div style="color:#fff; font-size:11px; display:flex; justify-content:space-between;">
+                <span>关卡 <span id="currentLevelNum">1</span>/30</span>
+                <span id="levelDifficulty">简单难度</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 3%;"></div>
+            </div>
+        </div>
+
+        <!-- 每日任务 -->
+        <div class="daily-tasks" id="dailyTasks">
+            <div style="color:#ffd700; font-size:11px; font-weight:bold; margin-bottom:4px;">📋 今日任务</div>
+            <div class="task-item">
+                <span>完成3局游戏</span>
+                <span class="task-progress" id="task1Progress">0/3</span>
+            </div>
+            <div class="task-item">
+                <span>获得1000分</span>
+                <span class="task-progress" id="task2Progress">0/1000</span>
+            </div>
+            <div class="task-item">
+                <span>达成3连击</span>
+                <span class="task-progress" id="task3Progress">0/3</span>
+            </div>
+        </div>
+
+        <!-- 道具栏 -->
+        <div class="items-bar" id="itemsBar">
+            <button class="item-btn" id="hintItem" title="揭示一个正确位置">
+                <span class="item-icon">💡</span>
+                <span class="item-name">提示</span>
+                <span class="item-cost">-20💎</span>
+            </button>
+            <button class="item-btn" id="eliminateItem" title="排除一个错误颜色">
+                <span class="item-icon">❌</span>
+                <span class="item-name">排除</span>
+                <span class="item-cost">-15💎</span>
+            </button>
+            <button class="item-btn" id="peekItem" title="查看密码包含的颜色">
+                <span class="item-icon">👁️</span>
+                <span class="item-name">透视</span>
+                <span class="item-cost">-30💎</span>
+            </button>
+            <button class="item-btn" id="extraTryItem" title="增加3次机会">
+                <span class="item-icon">➕</span>
+                <span class="item-name">加次</span>
+                <span class="item-cost">-25💎</span>
+            </button>
+            <button class="item-btn" id="doubleReward" title="下次胜利双倍奖励">
+                <span class="item-icon">✨</span>
+                <span class="item-name">双倍</span>
+                <span class="item-cost">-40💎</span>
+            </button>
+        </div>
+
+        <!-- 尝试记录区 -->
+        <div class="attempts-container" id="attemptsContainer"></div>
+
+        <!-- 当前输入行 -->
+        <div class="attempt-row" id="currentAttempt">
+            <div class="color-slots" id="colorSlots"></div>
+            <div class="feedback-dots" id="feedbackDots"></div>
+        </div>
+
+        <!-- 颜色选择器 -->
+        <div class="color-picker" id="colorPicker">
+            <div class="color-option red" data-color="red"></div>
+            <div class="color-option blue" data-color="blue"></div>
+            <div class="color-option yellow" data-color="yellow"></div>
+            <div class="color-option green" data-color="green"></div>
+            <div class="color-option purple" data-color="purple"></div>
+            <div class="color-option orange" data-color="orange"></div>
+            <div class="color-option black" data-color="black"></div>
+            <div class="color-option white" data-color="white"></div>
+            <div class="color-option pink" data-color="pink"></div>
+            <div class="color-option cyan" data-color="cyan"></div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <button class="action-btn undo" id="undoBtn">↩️ 撤销</button>
+            <button class="action-btn shake" id="shakeBtn">🎲 随机</button>
+            <button class="action-btn submit" id="submitBtn">✅ 提交</button>
+            <button class="action-btn reset" id="resetBtn">🔄 重置</button>
+        </div>
+    </div>
+</div>
+
+<!-- 胜利弹窗 -->
+<div class="modal-overlay" id="winOverlay">
+    <div class="modal">
+        <h2>🎉 破解成功！</h2>
+        <p>使用次数: <span class="highlight" id="attemptCount">0</span> 次</p>
+        <p>用时: <span class="highlight" id="timeUsed">0</span> 秒</p>
+        <div class="reward-info">
+            <p>获得分数: <span class="highlight" id="earnedScore">0</span></p>
+            <p>获得金币: <span class="highlight" id="earnedCoins">0</span></p>
+            <p id="comboBonus" style="display:none;">连击奖励: <span class="highlight" id="comboBonusAmount">0</span></p>
+            <p id="doubleBonus" style="display:none;">双倍加成: <span class="highlight">已激活!</span></p>
+        </div>
+        <button id="playAgainBtn">再来一局</button>
+        <button id="nextLevelBtn" style="display:none;">下一关 →</button>
+    </div>
+</div>
+
+<!-- 失败弹窗 -->
+<div class="modal-overlay" id="loseOverlay">
+    <div class="modal">
+        <h2>😢 挑战失败！</h2>
+        <p>正确密码是：</p>
+        <p class="highlight" id="correctCodeText"></p>
+        <div class="reward-info">
+            <p>本局得分: <span class="highlight" id="finalScore">0</span></p>
+        </div>
+        <button id="restartBtn">重新开始</button>
+        <button id="retryLevelBtn" style="display:none;">重试本关</button>
+    </div>
+</div>
+
+<!-- 幸运转盘弹窗 -->
+<div class="modal-overlay" id="wheelOverlay">
+    <div class="modal">
+        <h2>🎰 幸运转盘</h2>
+        <p>每天可免费转3次！</p>
+        <p>今日剩余: <span class="highlight" id="wheelCount">3</span> 次</p>
+        <div id="wheelResult" style="font-size:36px; margin:15px 0; min-height:40px;"></div>
+        <button id="spinWheelBtn">🎡 转动转盘</button>
+        <button id="closeWheelBtn">关闭</button>
+    </div>
+</div>
+
+<!-- 新手引导 -->
+<div class="tutorial-overlay" id="tutorialOverlay" style="display:none;">
+    <div class="tutorial-box">
+        <h3>🎮 游戏玩法</h3>
+        <div class="tutorial-step"><span class="icon">1️⃣</span>系统生成随机密码，你来破解它！</div>
+        <div class="tutorial-step"><span class="icon">2️⃣</span>点击颜色填入槽位，提交查看结果</div>
+        <div class="tutorial-step"><span class="icon">🟢</span>绿色 = 颜色和位置都对</div>
+        <div class="tutorial-step"><span class="icon">🟡</span>黄色 = 颜色对但位置错</div>
+        <div class="tutorial-step"><span class="icon">💡</span>遇到困难可用金币购买道具！</div>
+        <button id="startGameBtn" style="width:100%; margin-top:12px;">开始游戏 →</button>
+    </div>
+</div>
+
+<script>
+// ==================== 音频系统 ====================
+class AudioManager {
+    constructor() {
+        this.bgmEnabled = false;
+        this.sfxEnabled = true;
+        this.bgmVolume = 0.5;
+        this.sfxVolume = 0.7;
+        this.audioContext = null;
+        this.bgmAudio = null;
+        this.bgmSource = null;
+        this.bgmGainNode = null;
+        this.sfxGainNode = null;
+        this.isBgmLoaded = false;
+        this.userInteracted = false;
+    }
+
+    async init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.bgmGainNode = this.audioContext.createGain();
+            this.bgmGainNode.gain.value = this.bgmVolume;
+            this.bgmGainNode.connect(this.audioContext.destination);
+            this.sfxGainNode = this.audioContext.createGain();
+            this.sfxGainNode.gain.value = this.sfxVolume;
+            this.sfxGainNode.connect(this.audioContext.destination);
+            return true;
+        } catch (e) { console.error('音频初始化失败:', e); return false; }
+    }
+
+    async loadBGM(bgmUrl) {
+        if (!this.audioContext) await this.init();
+        try {
+            const response = await fetch(bgmUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            this.bgmAudio = await this.audioContext.decodeAudioData(arrayBuffer);
+            this.isBgmLoaded = true;
+            return true;
+        } catch (e) {
+            console.warn('BGM加载失败，使用默认音调:', e);
+            this.createDefaultBGM();
+            return false;
+        }
+    }
+
+    createDefaultBGM() {
+        if (!this.audioContext) return;
+        const duration = 8;
+        const sampleRate = this.audioContext.sampleRate;
+        const buffer = this.audioContext.createBuffer(2, sampleRate * duration, sampleRate);
+        for (let channel = 0; channel < 2; channel++) {
+            const data = buffer.getChannelData(channel);
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                const freq1 = 220 + Math.sin(t * 0.5) * 20;
+                const freq2 = 330 + Math.sin(t * 0.3) * 30;
+                data[i] = (Math.sin(2 * Math.PI * freq1 * t) * 0.15 + Math.sin(2 * Math.PI * freq2 * t) * 0.1 + Math.sin(2 * Math.PI * 110 * t) * 0.05) * (1 - (t % 4) / 4) * 0.3;
+            }
+        }
+        this.bgmAudio = buffer;
+        this.isBgmLoaded = true;
+    }
+
+    playBGM() {
+        if (!this.audioContext || !this.bgmAudio || !this.bgmEnabled) return;
+        this.stopBGM();
+        if (this.audioContext.state === 'suspended') this.audioContext.resume();
+        this.bgmSource = this.audioContext.createBufferSource();
+        this.bgmSource.buffer = this.bgmAudio;
+        this.bgmSource.loop = true;
+        this.bgmSource.connect(this.bgmGainNode);
+        this.bgmSource.start(0);
+    }
+
+    stopBGM() {
+        if (this.bgmSource) { try { this.bgmSource.stop(); } catch (e) {} this.bgmSource = null; }
+    }
+
+    toggleBGM() {
+        this.bgmEnabled = !this.bgmEnabled;
+        if (this.bgmEnabled) this.playBGM(); else this.stopBGM();
+        this.saveSettings();
+        return this.bgmEnabled;
+    }
+
+    toggleSFX() {
+        this.sfxEnabled = !this.sfxEnabled;
+        this.saveSettings();
+        return this.sfxEnabled;
+    }
+
+    setBGMVolume(value) { this.bgmVolume = value; if (this.bgmGainNode) this.bgmGainNode.gain.value = value; this.saveSettings(); }
+    setSFXVolume(value) { this.sfxVolume = value; if (this.sfxGainNode) this.sfxGainNode.gain.value = value; this.saveSettings(); }
+
+    playSound(type) {
+        if (!this.sfxEnabled || !this.audioContext) return;
+        if (this.audioContext.state === 'suspended') this.audioContext.resume();
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.sfxGainNode);
+        const now = this.audioContext.currentTime;
+        switch (type) {
+            case 'click': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(800, now); oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.05); gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08); oscillator.start(now); oscillator.stop(now + 0.08); break;
+            case 'select': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523, now); oscillator.frequency.setValueAtTime(659, now + 0.05); gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1); oscillator.start(now); oscillator.stop(now + 0.1); break;
+            case 'success': this.playMelody([523, 659, 784, 1047], 0.12, 'sine', 0.25); break;
+            case 'fail': this.playMelody([400, 350, 300, 250], 0.15, 'sawtooth', 0.15); break;
+            case 'error': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(200, now); oscillator.frequency.setValueAtTime(150, now + 0.1); gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2); oscillator.start(now); oscillator.stop(now + 0.2); break;
+            case 'combo': this.playMelody([523, 659, 784, 1047, 1319], 0.08, 'sine', 0.2); break;
+            case 'achievement': this.playMelody([659, 784, 880, 1047, 1319, 1568], 0.1, 'sine', 0.25); break;
+            case 'submit': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(440, now); oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.15); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2); oscillator.start(now); oscillator.stop(now + 0.2); break;
+            case 'undo': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(600, now); oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.1); gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12); oscillator.start(now); oscillator.stop(now + 0.12); break;
+            case 'random': this.playMelody([400, 500, 600, 700, 800, 700, 600, 500], 0.05, 'sine', 0.15); break;
+            case 'item': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(800, now); oscillator.frequency.setValueAtTime(1000, now + 0.08); oscillator.frequency.setValueAtTime(1200, now + 0.16); gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25); oscillator.start(now); oscillator.stop(now + 0.25); break;
+            case 'wheel': for (let i = 0; i < 8; i++) { setTimeout(() => { const osc = this.audioContext.createOscillator(); const gain = this.audioContext.createGain(); osc.connect(gain); gain.connect(this.sfxGainNode); osc.type = 'sine'; osc.frequency.value = 300 + i * 50; gain.gain.setValueAtTime(0.1, this.audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.08); osc.start(); osc.stop(this.audioContext.currentTime + 0.08); }, i * 50); } break;
+            case 'hint': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(880, now); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3); oscillator.start(now); oscillator.stop(now + 0.3); break;
+        }
+    }
+
+    playMelody(frequencies, duration, waveType, volume) {
+        frequencies.forEach((freq, index) => {
+            setTimeout(() => {
+                if (!this.audioContext || !this.sfxEnabled) return;
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                osc.connect(gain); gain.connect(this.sfxGainNode);
+                osc.type = waveType; osc.frequency.value = freq;
+                const now = this.audioContext.currentTime;
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                osc.start(now); osc.stop(now + duration);
+            }, index * duration * 1000);
+        });
+    }
+
+    saveSettings() { localStorage.setItem('audioSettings', JSON.stringify({ bgmEnabled: this.bgmEnabled, sfxEnabled: this.sfxEnabled, bgmVolume: this.bgmVolume, sfxVolume: this.sfxVolume })); }
+    loadSettings() { const saved = localStorage.getItem('audioSettings'); if (saved) { const settings = JSON.parse(saved); this.bgmEnabled = settings.bgmEnabled || false; this.sfxEnabled = settings.sfxEnabled !== false; this.bgmVolume = settings.bgmVolume || 0.5; this.sfxVolume = settings.sfxVolume || 0.7; } }
+}
+const audioManager = new AudioManager();
+
+// ==================== 核心游戏状态 ====================
+let secretCode = [], currentGuess = [], passwordLength = 4, allowRepeat = true, attempts = 0, maxAttempts = 20, gameOver = false, difficulty = 'easy', gameMode = 'classic';
+let totalScore = 0, totalCoins = 100, currentLevel = 1, highestLevel = 1, combo = 0, comboTimer = null, timeLeft = 60, timerInterval = null, gameStartTime = 0, hintsUsedThisGame = 0, excludedColors = [], revealedPositions = [], isDoubleReward = false, hasShownTutorial = false;
+let gamesPlayed = 0, gamesWon = 0, bestStreak = 0, currentStreak = 0;
+let dailyTasks = { games: { current: 0, target: 3, reward: 30, completed: false }, score: { current: 0, target: 1000, reward: 50, completed: false }, combo: { current: 0, target: 3, reward: 40, completed: false } };
+let dailyWheelSpins = 3, lastPlayDate = '';
+
+const achievements = {
+    firstWin: { name: '初次胜利', desc: '第一次破解成功', unlocked: false, reward: 20 },
+    speedDemon: { name: '速度恶魔', desc: '30秒内破解', unlocked: false, reward: 30 },
+    perfectGame: { name: '完美破解', desc: '第一次就猜对', unlocked: false, reward: 100 },
+    combo5: { name: '连击大师', desc: '达成5连击', unlocked: false, reward: 50 },
+    combo10: { name: '连击王者', desc: '达成10连击', unlocked: false, reward: 100 },
+    level5: { name: '冒险先锋', desc: '通过第5关', unlocked: false, reward: 30 },
+    level10: { name: '冒险达人', desc: '通过第10关', unlocked: false, reward: 50 },
+    level20: { name: '冒险大师', desc: '通过第20关', unlocked: false, reward: 100 },
+    richPlayer: { name: '富翁', desc: '累积500金币', unlocked: false, reward: 50 },
+    hardWin: { name: '硬核玩家', desc: '困难难度获胜', unlocked: false, reward: 40 },
+    hellWin: { name: '地狱征服者', desc: '地狱难度获胜', unlocked: false, reward: 80 },
+    noHints: { name: '独立思考', desc: '不使用道具获胜', unlocked: false, reward: 30 },
+    marathon: { name: '马拉松', desc: '累计游戏50局', unlocked: false, reward: 50 },
+    efficient: { name: '高效破解', desc: '5次内破解密码', unlocked: false, reward: 40 }
+};
+
+const difficultyConfig = { easy: { colors: 8, scoreMultiplier: 1, name: '简单' }, normal: { colors: 8, scoreMultiplier: 1.5, name: '中等' }, hard: { colors: 10, scoreMultiplier: 2, name: '困难' }, hell: { colors: 10, scoreMultiplier: 3, name: '地狱' } };
+const allColors = ['red','blue','yellow','green','purple','orange','black','white','pink','cyan'];
+const colorNameMap = { red: '红色', blue: '蓝色', yellow: '黄色', green: '绿色', purple: '紫色', orange: '橙色', black: '黑色', white: '白色', pink: '粉色', cyan: '青色' };
+
+const levelConfigs = [];
+for (let i = 1; i <= 30; i++) {
+    let diff, length, maxTry;
+    if (i <= 5) { diff = 'easy'; length = 4; maxTry = 15; }
+    else if (i <= 10) { diff = 'normal'; length = 4; maxTry = 12; }
+    else if (i <= 15) { diff = 'normal'; length = 5; maxTry = 15; }
+    else if (i <= 20) { diff = 'hard'; length = 5; maxTry = 12; }
+    else if (i <= 25) { diff = 'hard'; length = 6; maxTry = 15; }
+    else { diff = 'hell'; length = 6; maxTry = 12; }
+    levelConfigs.push({ level: i, difficulty: diff, length, maxAttempts: maxTry, allowRepeat: i > 8 });
+}
+
+// ==================== DOM元素 ====================
+const colorSlots = document.getElementById('colorSlots');
+const attemptsContainer = document.getElementById('attemptsContainer');
+const submitBtn = document.getElementById('submitBtn');
+const resetBtn = document.getElementById('resetBtn');
+const undoBtn = document.getElementById('undoBtn');
+const shakeBtn = document.getElementById('shakeBtn');
+const remainingText = document.getElementById('remainingText');
+const repeatStatus = document.getElementById('repeatStatus');
+const difficultyText = document.getElementById('difficultyText');
+const scoreText = document.getElementById('scoreText');
+const coinsText = document.getElementById('coinsText');
+const levelText = document.getElementById('levelText');
+const streakText = document.getElementById('streakText');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerText = document.getElementById('timerText');
+const winOverlay = document.getElementById('winOverlay');
+const loseOverlay = document.getElementById('loseOverlay');
+const correctCodeText = document.getElementById('correctCodeText');
+const attemptCount = document.getElementById('attemptCount');
+const timeUsed = document.getElementById('timeUsed');
+const earnedScore = document.getElementById('earnedScore');
+const earnedCoins = document.getElementById('earnedCoins');
+const comboBonus = document.getElementById('comboBonus');
+const comboBonusAmount = document.getElementById('comboBonusAmount');
+const doubleBonus = document.getElementById('doubleBonus');
+const finalScore = document.getElementById('finalScore');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const restartBtn = document.getElementById('restartBtn');
+const nextLevelBtn = document.getElementById('nextLevelBtn');
+const retryLevelBtn = document.getElementById('retryLevelBtn');
+const modeBtns = document.querySelectorAll('.mode-btn');
+const repeatBtns = document.querySelectorAll('.repeat-btn');
+const colorOptions = document.querySelectorAll('.color-option');
+const modeTabs = document.querySelectorAll('.mode-tab');
+const diffBtns = document.querySelectorAll('.diff-btn');
+const comboDisplay = document.getElementById('comboDisplay');
+const comboCount = document.getElementById('comboCount');
+const levelProgress = document.getElementById('levelProgress');
+const currentLevelNum = document.getElementById('currentLevelNum');
+const levelDifficultyEl = document.getElementById('levelDifficulty');
+const progressFill = document.getElementById('progressFill');
+const settingBar = document.getElementById('settingBar');
+const difficultyBar = document.getElementById('difficultyBar');
+const itemsBar = document.getElementById('itemsBar');
+const colorPicker = document.getElementById('colorPicker');
+const achievementPopup = document.getElementById('achievementPopup');
+const achievementName = document.getElementById('achievementName');
+const particles = document.getElementById('particles');
+const dailyTasksEl = document.getElementById('dailyTasks');
+const tutorialOverlay = document.getElementById('tutorialOverlay');
+const luckyWheelBtn = document.getElementById('luckyWheelBtn');
+const wheelOverlay = document.getElementById('wheelOverlay');
+const wheelCountEl = document.getElementById('wheelCount');
+const wheelResult = document.getElementById('wheelResult');
+const spinWheelBtn = document.getElementById('spinWheelBtn');
+const closeWheelBtn = document.getElementById('closeWheelBtn');
+const startGameBtn = document.getElementById('startGameBtn');
+const doubleRewardEl = document.getElementById('doubleReward');
+const hintItem = document.getElementById('hintItem');
+const eliminateItem = document.getElementById('eliminateItem');
+const peekItem = document.getElementById('peekItem');
+const extraTryItem = document.getElementById('extraTryItem');
+const bgmBtn = document.getElementById('bgmBtn');
+const sfxBtn = document.getElementById('sfxBtn');
+const audioPrompt = document.getElementById('audioPrompt');
+const creditsBtn = document.getElementById('creditsBtn');
+const creditsModal = document.getElementById('creditsModal');
+const creditsClose = document.getElementById('creditsClose');
+
+// ==================== 工具函数 ====================
+function playSound(type) { audioManager.playSound(type); }
+function showErrorToast(message) { const existing = document.querySelector('.error-toast'); if (existing) existing.remove(); const toast = document.createElement('div'); toast.className = 'error-toast'; toast.textContent = message; document.body.appendChild(toast); playSound('error'); setTimeout(() => toast.remove(), 1500); }
+function saveGame() { const saveData = { totalScore, totalCoins, highestLevel, currentLevel, achievements: {}, stats: { gamesPlayed, gamesWon, bestStreak, currentStreak }, dailyTasks, dailyWheelSpins, lastPlayDate, hasShownTutorial }; Object.keys(achievements).forEach(key => { saveData.achievements[key] = achievements[key].unlocked; }); localStorage.setItem('passwordMachineSaveV2', JSON.stringify(saveData)); }
+function loadGame() { const saved = localStorage.getItem('passwordMachineSaveV2'); if (saved) { const data = JSON.parse(saved); totalScore = data.totalScore || 0; totalCoins = data.totalCoins || 100; highestLevel = data.highestLevel || 1; currentLevel = data.currentLevel || 1; if (data.achievements) { Object.keys(data.achievements).forEach(key => { if (achievements[key]) achievements[key].unlocked = data.achievements[key]; }); } if (data.stats) { gamesPlayed = data.stats.gamesPlayed || 0; gamesWon = data.stats.gamesWon || 0; bestStreak = data.stats.bestStreak || 0; currentStreak = data.stats.currentStreak || 0; } if (data.dailyTasks) dailyTasks = data.dailyTasks; dailyWheelSpins = data.dailyWheelSpins ?? 3; lastPlayDate = data.lastPlayDate || ''; hasShownTutorial = data.hasShownTutorial || false; } const today = new Date().toDateString(); if (lastPlayDate !== today) { dailyTasks = { games: { current: 0, target: 3, reward: 30, completed: false }, score: { current: 0, target: 1000, reward: 50, completed: false }, combo: { current: 0, target: 3, reward: 40, completed: false } }; dailyWheelSpins = 3; lastPlayDate = today; } updateDisplays(); updateDailyTasksDisplay(); }
+function updateDisplays() { scoreText.textContent = totalScore; coinsText.textContent = totalCoins; levelText.textContent = currentLevel; streakText.textContent = currentStreak; }
+function updateDailyTasksDisplay() { document.getElementById('task1Progress').textContent = `${dailyTasks.games.current}/${dailyTasks.games.target}`; document.getElementById('task2Progress').textContent = `${dailyTasks.score.current}/${dailyTasks.score.target}`; document.getElementById('task3Progress').textContent = `${dailyTasks.combo.current}/${dailyTasks.combo.target}`; document.getElementById('task1Progress').className = 'task-progress' + (dailyTasks.games.current >= dailyTasks.games.target ? ' completed' : ''); document.getElementById('task2Progress').className = 'task-progress' + (dailyTasks.score.current >= dailyTasks.score.target ? ' completed' : ''); document.getElementById('task3Progress').className = 'task-progress' + (dailyTasks.combo.current >= dailyTasks.combo.target ? ' completed' : ''); }
+
+// ==================== 游戏核心逻辑 ====================
+function initGame() {
+    gameOver = false; attempts = 0; currentGuess = []; attemptsContainer.innerHTML = ''; hintsUsedThisGame = 0; excludedColors = []; revealedPositions = []; isDoubleReward = false; doubleBonus.style.display = 'none';
+    winOverlay.style.display = 'none'; loseOverlay.style.display = 'none'; submitBtn.disabled = false; undoBtn.disabled = false;
+    if (gameMode === 'adventure') { const config = levelConfigs[currentLevel - 1]; passwordLength = config.length; maxAttempts = config.maxAttempts; allowRepeat = config.allowRepeat; difficulty = config.difficulty; difficultyBar.style.display = 'none'; settingBar.style.display = 'none'; levelProgress.style.display = 'block'; currentLevelNum.textContent = currentLevel; levelDifficultyEl.textContent = difficultyConfig[difficulty].name + '难度'; progressFill.style.width = (currentLevel / 30 * 100) + '%'; dailyTasksEl.classList.remove('show'); }
+    else if (gameMode === 'timed') { timeLeft = difficulty === 'easy' ? 90 : difficulty === 'normal' ? 60 : difficulty === 'hard' ? 45 : 30; timerDisplay.style.display = 'block'; startTimer(); difficultyBar.style.display = 'flex'; settingBar.style.display = 'flex'; levelProgress.style.display = 'none'; dailyTasksEl.classList.remove('show'); }
+    else if (gameMode === 'daily') { passwordLength = 5; maxAttempts = 12; allowRepeat = false; difficulty = 'normal'; difficultyBar.style.display = 'none'; settingBar.style.display = 'none'; levelProgress.style.display = 'none'; dailyTasksEl.classList.add('show'); }
+    else if (gameMode === 'endless') { maxAttempts = 999; difficultyBar.style.display = 'flex'; settingBar.style.display = 'flex'; levelProgress.style.display = 'none'; remainingText.parentElement.style.display = 'none'; dailyTasksEl.classList.remove('show'); }
+    else { maxAttempts = passwordLength === 4 ? 20 : (passwordLength === 5 ? 35 : 50); difficultyBar.style.display = 'flex'; settingBar.style.display = 'flex'; levelProgress.style.display = 'none'; timerDisplay.style.display = 'none'; dailyTasksEl.classList.remove('show'); }
+    applyDifficultySettings(); updateRemainingDisplay(); repeatStatus.textContent = allowRepeat ? '允许重复' : '禁止重复'; difficultyText.textContent = difficultyConfig[difficulty].name;
+    generateSecretCode(); initColorSlots(); updateFeedbackDots(); updateColorPicker(); updateItemButtons(); gameStartTime = Date.now();
+}
+function applyDifficultySettings() { updateColorPicker(); }
+function updateColorPicker() { const config = difficultyConfig[difficulty]; const visibleColors = allColors.slice(0, config.colors); colorOptions.forEach(option => { const color = option.dataset.color; option.classList.remove('disabled', 'selected-repeat'); if (!visibleColors.includes(color) || excludedColors.includes(color)) option.classList.add('disabled'); if (!allowRepeat && currentGuess.includes(color)) option.classList.add('selected-repeat'); }); }
+function updateRemainingDisplay() { if (gameMode === 'endless') { remainingText.textContent = '∞'; } else { const remain = maxAttempts - attempts; remainingText.textContent = remain; remainingText.style.color = remain <= 5 ? '#ff5252' : '#ffd700'; } }
+function generateSecretCode() { secretCode = []; const config = difficultyConfig[difficulty]; const availableColors = allColors.slice(0, config.colors); const tempColorList = [...availableColors]; for (let i = 0; i < passwordLength; i++) { let randomColor; if (allowRepeat) { randomColor = availableColors[Math.floor(Math.random() * availableColors.length)]; } else { if (tempColorList.length === 0) break; const randomIndex = Math.floor(Math.random() * tempColorList.length); randomColor = tempColorList.splice(randomIndex, 1)[0]; } secretCode.push(randomColor); } }
+function initColorSlots() { colorSlots.innerHTML = ''; currentGuess = []; for (let i = 0; i < passwordLength; i++) { const slot = document.createElement('div'); slot.className = 'color-slot'; if (revealedPositions.includes(i)) { slot.classList.add('filled', secretCode[i], 'hint-revealed'); currentGuess[i] = secretCode[i]; } slot.dataset.index = i; colorSlots.appendChild(slot); } updateColorPicker(); }
+function updateFeedbackDots() { const feedbackDots = document.getElementById('feedbackDots'); feedbackDots.innerHTML = ''; for (let i = 0; i < passwordLength; i++) { const dot = document.createElement('div'); dot.className = 'feedback-dot'; feedbackDots.appendChild(dot); } }
+function calculateFeedback() { const secretCopy = [...secretCode]; const guessCopy = [...currentGuess]; let correct = 0, wrongPos = 0; for (let i = 0; i < passwordLength; i++) { if (guessCopy[i] === secretCopy[i]) { correct++; secretCopy[i] = null; guessCopy[i] = null; } } for (let i = 0; i < passwordLength; i++) { if (guessCopy[i] === null) continue; const index = secretCopy.indexOf(guessCopy[i]); if (index !== -1) { wrongPos++; secretCopy[index] = null; } } return { correct, wrongPos }; }
+function createAttemptRow(serialNumber, feedback) { const attemptRow = document.createElement('div'); attemptRow.className = 'attempt-row'; const numberTag = document.createElement('div'); numberTag.className = 'attempt-number'; numberTag.textContent = serialNumber; const colorSlotsDiv = document.createElement('div'); colorSlotsDiv.className = 'color-slots'; currentGuess.forEach(color => { const slot = document.createElement('div'); slot.className = `color-slot filled ${color}`; colorSlotsDiv.appendChild(slot); }); const feedbackDots = document.createElement('div'); feedbackDots.className = 'feedback-dots'; for (let i = 0; i < feedback.correct; i++) { const dot = document.createElement('div'); dot.className = 'feedback-dot correct'; feedbackDots.appendChild(dot); } for (let i = 0; i < feedback.wrongPos; i++) { const dot = document.createElement('div'); dot.className = 'feedback-dot wrong-pos'; feedbackDots.appendChild(dot); } const emptyDotCount = passwordLength - (feedback.correct + feedback.wrongPos); for (let i = 0; i < emptyDotCount; i++) { const dot = document.createElement('div'); dot.className = 'feedback-dot'; feedbackDots.appendChild(dot); } attemptRow.appendChild(numberTag); attemptRow.appendChild(colorSlotsDiv); attemptRow.appendChild(feedbackDots); attemptsContainer.appendChild(attemptRow); }
+function calculateReward(isWin, attemptCount, timeSeconds) { let baseScore = 0, baseCoins = 0; if (isWin) { baseScore = 1000; baseCoins = 20; const attemptBonus = Math.max(0, (maxAttempts - attemptCount) * 20); baseScore += attemptBonus; baseCoins += Math.floor(attemptBonus / 20); if (gameMode === 'timed') { const timeBonus = timeLeft * 10; baseScore += timeBonus; baseCoins += Math.floor(timeBonus / 10); } else { const timeBonus = Math.max(0, (120 - timeSeconds) * 5); baseScore += timeBonus; } const multiplier = difficultyConfig[difficulty].scoreMultiplier; baseScore = Math.floor(baseScore * multiplier); baseCoins = Math.floor(baseCoins * multiplier); if (combo >= 3) { const comboBonusValue = combo * 50; baseScore += comboBonusValue; baseCoins += combo * 5; } if (hintsUsedThisGame === 0) { baseScore += 200; baseCoins += 10; } if (isDoubleReward) { baseScore *= 2; baseCoins *= 2; } } return { score: baseScore, coins: baseCoins }; }
+function checkAchievement(achId) { if (achievements[achId] && !achievements[achId].unlocked) { achievements[achId].unlocked = true; showAchievement(achievements[achId].name); totalCoins += achievements[achId].reward; return true; } return false; }
+function showAchievement(name) { achievementName.textContent = name; achievementPopup.style.display = 'block'; playSound('achievement'); setTimeout(() => { achievementPopup.style.display = 'none'; }, 3000); }
+function triggerCombo() { combo++; comboCount.textContent = combo; comboDisplay.classList.add('show'); if (combo >= 3) playSound('combo'); if (combo > dailyTasks.combo.current) { dailyTasks.combo.current = combo; if (dailyTasks.combo.current >= dailyTasks.combo.target && !dailyTasks.combo.completed) { dailyTasks.combo.completed = true; totalCoins += dailyTasks.combo.reward; showAchievement('任务完成！+' + dailyTasks.combo.reward + '💎'); } } clearTimeout(comboTimer); comboTimer = setTimeout(() => { combo = 0; comboDisplay.classList.remove('show'); }, 120000); if (combo >= 5) checkAchievement('combo5'); if (combo >= 10) checkAchievement('combo10'); }
+function updateItemButtons() { hintItem.disabled = totalCoins < 20; eliminateItem.disabled = totalCoins < 15; peekItem.disabled = totalCoins < 30; extraTryItem.disabled = totalCoins < 25 || gameMode === 'endless'; doubleRewardEl.disabled = totalCoins < 40 || isDoubleReward; }
+function useHint() { if (totalCoins < 20 || gameOver) return; totalCoins -= 20; hintsUsedThisGame++; updateDisplays(); updateItemButtons(); playSound('hint'); const unrevealed = []; for (let i = 0; i < passwordLength; i++) { if (!revealedPositions.includes(i)) unrevealed.push(i); } if (unrevealed.length > 0) { const pos = unrevealed[Math.floor(Math.random() * unrevealed.length)]; revealedPositions.push(pos); const slots = colorSlots.querySelectorAll('.color-slot'); slots[pos].className = `color-slot filled ${secretCode[pos]} hint-revealed`; currentGuess[pos] = secretCode[pos]; updateColorPicker(); } }
+function useEliminate() { if (totalCoins < 15 || gameOver) return; totalCoins -= 15; hintsUsedThisGame++; updateDisplays(); updateItemButtons(); playSound('item'); const config = difficultyConfig[difficulty]; const availableColors = allColors.slice(0, config.colors); const unusedColors = availableColors.filter(c => !secretCode.includes(c) && !excludedColors.includes(c)); if (unusedColors.length > 0) { const colorToRemove = unusedColors[Math.floor(Math.random() * unusedColors.length)]; excludedColors.push(colorToRemove); updateColorPicker(); showAchievement(`已排除：${colorNameMap[colorToRemove]}`); } }
+function usePeek() { if (totalCoins < 30 || gameOver) return; totalCoins -= 30; hintsUsedThisGame++; updateDisplays(); updateItemButtons(); playSound('item'); const uniqueColors = [...new Set(secretCode)]; const colorNames = uniqueColors.map(c => colorNameMap[c]).join('、'); showAchievement(`密码包含：${colorNames}`); }
+function useExtraTry() { if (totalCoins < 25 || gameOver || gameMode === 'endless') return; totalCoins -= 25; hintsUsedThisGame++; maxAttempts += 3; updateDisplays(); updateItemButtons(); updateRemainingDisplay(); playSound('item'); showAchievement('获得3次额外机会！'); }
+function useDoubleReward() { if (totalCoins < 40 || gameOver || isDoubleReward) return; totalCoins -= 40; isDoubleReward = true; updateDisplays(); updateItemButtons(); playSound('item'); showAchievement('双倍奖励已激活！'); }
+function randomFill() { if (gameOver) return; playSound('random'); const config = difficultyConfig[difficulty]; const availableColors = allColors.slice(0, config.colors).filter(c => !excludedColors.includes(c)); currentGuess = []; const slots = colorSlots.querySelectorAll('.color-slot'); slots.forEach(slot => { slot.className = 'color-slot'; }); const tempColors = [...availableColors]; for (let i = 0; i < passwordLength; i++) { let randomColor; if (allowRepeat) { randomColor = availableColors[Math.floor(Math.random() * availableColors.length)]; } else { if (tempColors.length === 0) break; const randomIndex = Math.floor(Math.random() * tempColors.length); randomColor = tempColors.splice(randomIndex, 1)[0]; } currentGuess[i] = randomColor; slots[i].className = `color-slot filled ${randomColor}`; } updateColorPicker(); }
+const wheelRewards = [{ type: 'coins', amount: 10, text: '10💎', icon: '💎' }, { type: 'coins', amount: 20, text: '20💎', icon: '💎' }, { type: 'coins', amount: 50, text: '50💎', icon: '💎' }, { type: 'coins', amount: 100, text: '100💎', icon: '💎' }, { type: 'hint', text: '免费提示×1', icon: '💡' }, { type: 'double', text: '双倍奖励卡', icon: '✨' }, { type: 'coins', amount: 5, text: '5💎', icon: '💎' }, { type: 'nothing', text: '谢谢参与', icon: '😅' }];
+function spinWheel() { if (dailyWheelSpins <= 0) { showErrorToast('今日转盘次数已用完！'); return; } dailyWheelSpins--; wheelCountEl.textContent = dailyWheelSpins; saveGame(); wheelResult.textContent = '🎰'; spinWheelBtn.disabled = true; playSound('wheel'); let spins = 0; const maxSpins = 15; const spinInterval = setInterval(() => { const randomReward = wheelRewards[Math.floor(Math.random() * wheelRewards.length)]; wheelResult.textContent = randomReward.icon; spins++; if (spins >= maxSpins) { clearInterval(spinInterval); const finalReward = wheelRewards[Math.floor(Math.random() * wheelRewards.length)]; wheelResult.innerHTML = `${finalReward.icon}<br><span style="font-size:14px;">${finalReward.text}</span>`; if (finalReward.type === 'coins') { totalCoins += finalReward.amount; updateDisplays(); } else if (finalReward.type === 'hint') { totalCoins += 20; updateDisplays(); } else if (finalReward.type === 'double') { isDoubleReward = true; } playSound('success'); saveGame(); spinWheelBtn.disabled = false; } }, 100); }
+function startTimer() { clearInterval(timerInterval); timerInterval = setInterval(() => { timeLeft--; timerText.textContent = timeLeft; if (timeLeft <= 10) timerDisplay.classList.add('warning'); if (timeLeft <= 0) { clearInterval(timerInterval); if (!gameOver) showLoseModal(); } }, 1000); }
+function stopTimer() { clearInterval(timerInterval); timerDisplay.classList.remove('warning'); }
+function createParticles(color, count = 30) { for (let i = 0; i < count; i++) { const particle = document.createElement('div'); particle.className = 'particle'; particle.style.left = Math.random() * 100 + '%'; particle.style.top = '-20px'; particle.style.width = (Math.random() * 10 + 5) + 'px'; particle.style.height = particle.style.width; particle.style.backgroundColor = color; particle.style.animationDuration = (Math.random() * 2 + 1) + 's'; particles.appendChild(particle); setTimeout(() => particle.remove(), 3000); } }
+function showWinModal() { gameOver = true; stopTimer(); submitBtn.disabled = true; const timeSeconds = Math.floor((Date.now() - gameStartTime) / 1000); const reward = calculateReward(true, attempts, timeSeconds); totalScore += reward.score; totalCoins += reward.coins; gamesWon++; currentStreak++; if (currentStreak > bestStreak) bestStreak = currentStreak; dailyTasks.games.current++; dailyTasks.score.current += reward.score; if (dailyTasks.games.current >= dailyTasks.games.target && !dailyTasks.games.completed) { dailyTasks.games.completed = true; totalCoins += dailyTasks.games.reward; } if (dailyTasks.score.current >= dailyTasks.score.target && !dailyTasks.score.completed) { dailyTasks.score.completed = true; totalCoins += dailyTasks.score.reward; } updateDailyTasksDisplay(); triggerCombo(); attemptCount.textContent = attempts; timeUsed.textContent = timeSeconds; earnedScore.textContent = reward.score; earnedCoins.textContent = reward.coins; if (combo >= 3) { comboBonus.style.display = 'block'; comboBonusAmount.textContent = combo * 50; } else { comboBonus.style.display = 'none'; } if (isDoubleReward) { doubleBonus.style.display = 'block'; } else { doubleBonus.style.display = 'none'; } if (gameMode === 'adventure') { nextLevelBtn.style.display = 'inline-block'; if (currentLevel > highestLevel) highestLevel = currentLevel; } else { nextLevelBtn.style.display = 'none'; } winOverlay.style.display = 'flex'; playSound('success'); createParticles('#ffd700', 50); checkAchievement('firstWin'); if (timeSeconds <= 30) checkAchievement('speedDemon'); if (attempts === 1) checkAchievement('perfectGame'); if (attempts <= 5) checkAchievement('efficient'); if (difficulty === 'hard') checkAchievement('hardWin'); if (difficulty === 'hell') checkAchievement('hellWin'); if (hintsUsedThisGame === 0) checkAchievement('noHints'); if (totalCoins >= 500) checkAchievement('richPlayer'); if (gameMode === 'adventure') { if (currentLevel >= 5) checkAchievement('level5'); if (currentLevel >= 10) checkAchievement('level10'); if (currentLevel >= 20) checkAchievement('level20'); } if (gamesPlayed >= 50) checkAchievement('marathon'); saveGame(); updateDisplays(); }
+function showLoseModal() { gameOver = true; stopTimer(); submitBtn.disabled = true; const codeText = secretCode.map(color => colorNameMap[color]).join('、'); correctCodeText.textContent = codeText; finalScore.textContent = totalScore; dailyTasks.games.current++; if (dailyTasks.games.current >= dailyTasks.games.target && !dailyTasks.games.completed) { dailyTasks.games.completed = true; totalCoins += dailyTasks.games.reward; } updateDailyTasksDisplay(); if (gameMode === 'adventure') { retryLevelBtn.style.display = 'inline-block'; } else { retryLevelBtn.style.display = 'none'; } loseOverlay.style.display = 'flex'; playSound('fail'); currentStreak = 0; combo = 0; comboDisplay.classList.remove('show'); saveGame(); }
+
+// ==================== 事件绑定 ====================
+bgmBtn.addEventListener('click', () => { const enabled = audioManager.toggleBGM(); bgmBtn.classList.toggle('active', enabled); bgmBtn.classList.toggle('muted', !enabled); bgmBtn.textContent = enabled ? '🎵' : '🔇'; });
+sfxBtn.addEventListener('click', () => { const enabled = audioManager.toggleSFX(); sfxBtn.classList.toggle('active', enabled); sfxBtn.classList.toggle('muted', !enabled); sfxBtn.textContent = enabled ? '🔊' : '🔈'; if (enabled) playSound('click'); });
+creditsBtn.addEventListener('click', () => { creditsModal.style.display = 'flex'; });
+creditsClose.addEventListener('click', () => { creditsModal.style.display = 'none'; });
+creditsModal.addEventListener('click', (e) => { if (e.target === creditsModal) creditsModal.style.display = 'none'; });
+
+colorOptions.forEach(option => { option.addEventListener('click', () => { if (gameOver || option.classList.contains('disabled')) return; const emptySlots = colorSlots.querySelectorAll('.color-slot:not(.filled)'); if (emptySlots.length === 0) return; const color = option.dataset.color; if (!allowRepeat && currentGuess.includes(color)) { showErrorToast(`❌ 禁止重复模式下不能选择重复颜色！`); const slots = colorSlots.querySelectorAll('.color-slot'); slots.forEach((slot, index) => { if (currentGuess[index] === color) { slot.classList.add('repeat-error'); setTimeout(() => slot.classList.remove('repeat-error'), 400); } }); return; } playSound('select'); const firstEmptySlot = emptySlots[0]; const index = parseInt(firstEmptySlot.dataset.index); firstEmptySlot.classList.add('filled', color); currentGuess[index] = color; updateColorPicker(); }); });
+undoBtn.addEventListener('click', () => { if (gameOver) return; playSound('undo'); const filledSlots = colorSlots.querySelectorAll('.color-slot.filled:not(.hint-revealed)'); if (filledSlots.length === 0) return; const lastSlot = filledSlots[filledSlots.length - 1]; const index = parseInt(lastSlot.dataset.index); lastSlot.className = 'color-slot'; currentGuess[index] = undefined; updateColorPicker(); });
+shakeBtn.addEventListener('click', randomFill);
+submitBtn.addEventListener('click', () => { if (gameOver) return; playSound('submit'); if (currentGuess.length < passwordLength || currentGuess.some(c => !c)) { showErrorToast('请填满所有颜色槽！'); return; } if (!allowRepeat) { const uniqueColors = new Set(currentGuess); if (uniqueColors.size !== currentGuess.length) { showErrorToast('存在重复颜色，请检查！'); return; } } attempts++; gamesPlayed++; updateRemainingDisplay(); const feedback = calculateFeedback(); createAttemptRow(attempts, feedback); if (feedback.correct === passwordLength) { showWinModal(); return; } if (gameMode !== 'endless' && attempts >= maxAttempts) { showLoseModal(); return; } currentGuess = []; initColorSlots(); });
+modeTabs.forEach(tab => { tab.addEventListener('click', () => { playSound('click'); modeTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); gameMode = tab.dataset.mode; combo = 0; comboDisplay.classList.remove('show'); stopTimer(); if (gameMode === 'adventure') currentLevel = Math.max(1, currentLevel); initGame(); }); });
+diffBtns.forEach(btn => { btn.addEventListener('click', () => { if (gameOver) return; playSound('click'); diffBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); difficulty = btn.dataset.diff; initGame(); }); });
+document.querySelectorAll('.mode-btn').forEach(btn => { btn.addEventListener('click', () => { if (gameOver || gameMode === 'adventure' || gameMode === 'daily') return; playSound('click'); document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); passwordLength = parseInt(btn.dataset.mode); initGame(); }); });
+repeatBtns.forEach(btn => { btn.addEventListener('click', () => { if (gameOver || gameMode === 'adventure' || gameMode === 'daily') return; playSound('click'); repeatBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); allowRepeat = btn.dataset.repeat === 'true'; initGame(); }); });
+hintItem.addEventListener('click', useHint);
+eliminateItem.addEventListener('click', useEliminate);
+peekItem.addEventListener('click', usePeek);
+extraTryItem.addEventListener('click', useExtraTry);
+doubleRewardEl.addEventListener('click', useDoubleReward);
+resetBtn.addEventListener('click', () => { playSound('click'); stopTimer(); combo = 0; comboDisplay.classList.remove('show'); initGame(); });
+playAgainBtn.addEventListener('click', () => { playSound('click'); initGame(); });
+restartBtn.addEventListener('click', () => { playSound('click'); initGame(); });
+nextLevelBtn.addEventListener('click', () => { playSound('click'); currentLevel++; if (currentLevel > 30) { showAchievement('🎉 恭喜通关全部30关！'); currentLevel = 1; } initGame(); });
+retryLevelBtn.addEventListener('click', () => { playSound('click'); initGame(); });
+colorSlots.addEventListener('click', (e) => { if (e.target.classList.contains('color-slot') && e.target.classList.contains('filled') && !e.target.classList.contains('hint-revealed')) { const index = parseInt(e.target.dataset.index); e.target.className = 'color-slot'; currentGuess[index] = undefined; playSound('undo'); updateColorPicker(); } });
+luckyWheelBtn.addEventListener('click', () => { wheelOverlay.style.display = 'flex'; wheelCountEl.textContent = dailyWheelSpins; wheelResult.textContent = '🎰'; });
+spinWheelBtn.addEventListener('click', spinWheel);
+closeWheelBtn.addEventListener('click', () => { wheelOverlay.style.display = 'none'; });
+startGameBtn.addEventListener('click', () => { tutorialOverlay.style.display = 'none'; hasShownTutorial = true; saveGame(); initGame(); });
+
+// ==================== 初始化 ====================
+async function init() {
+    audioManager.loadSettings();
+    bgmBtn.classList.toggle('active', audioManager.bgmEnabled);
+    bgmBtn.classList.toggle('muted', !audioManager.bgmEnabled);
+    bgmBtn.textContent = audioManager.bgmEnabled ? '🎵' : '🔇';
+    sfxBtn.classList.toggle('active', audioManager.sfxEnabled);
+    sfxBtn.classList.toggle('muted', !audioManager.sfxEnabled);
+    sfxBtn.textContent = audioManager.sfxEnabled ? '🔊' : '🔈';
+    loadGame();
+    await audioManager.init();
+    audioManager.createDefaultBGM();
+    if (!hasShownTutorial) { tutorialOverlay.style.display = 'flex'; } else { initGame(); }
+    if (!audioManager.userInteracted) { audioPrompt.style.display = 'block'; }
+}
+document.addEventListener('click', () => {
+    if (!audioManager.userInteracted) {
+        audioManager.userInteracted = true;
+        audioPrompt.style.display = 'none';
+        if (audioManager.audioContext && audioManager.audioContext.state === 'suspended') { audioManager.audioContext.resume(); }
+        if (audioManager.bgmEnabled) { audioManager.playBGM(); }
+    }
+}, { once: false });
+
+let lastShakeTime = 0;
+if (window.DeviceMotionEvent) {
+    window.addEventListener('devicemotion', (e) => {
+        const acc = e.accelerationIncludingGravity;
+        if (!acc) return;
+        const totalAcceleration = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+        if (totalAcceleration > 30) {
+            const now = Date.now();
+            if (now - lastShakeTime > 1000) {
+                lastShakeTime = now;
+                if (!gameOver) { randomFill(); showAchievement('🎲 摇一摇随机填色！'); }
+            }
+        }
+    });
+}
+
+window.addEventListener('load', init);
+window.addEventListener('beforeunload', () => { audioManager.stopBGM(); saveGame(); });
+</script>
+</body>
+</html>
